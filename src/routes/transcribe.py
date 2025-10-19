@@ -1,21 +1,18 @@
 from fastapi import APIRouter, UploadFile, File
-from src.services.transcription_service import transcribe_audio
+from typing import List
+from src.services.transcription_service import transcribe_multiple
 
-router = APIRouter()
+router = APIRouter(prefix="/tarnscribe", tags=["Transcription"])
 
 @router.get("/")
 def test_transcribe():
     return {"message": "Transcribe route is working!"}
 
 @router.post("/")
-async def transcribe_audio_route(file: UploadFile = File(...)):
+async def transcribe_audio_route(files: List[UploadFile] = File(...)):
     """
-    Accepts an audio file and returns its transcription.
+    Accept multiple audio files, transcribe them, and return the results.
     """
-    # temporary save file
-    file_path = f"temp_{file.filename}"
-    with open(file_path, "wb") as f:
-        f.write(await file.read())
 
-    result = await transcribe_audio(file_path)
-    return {"status": "success", "data": result}
+    results = transcribe_multiple(files)
+    return {"status": "success", "count": len(results), "data": results}
