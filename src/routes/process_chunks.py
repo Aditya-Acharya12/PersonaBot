@@ -1,22 +1,20 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from src.services.chunk_service import create_chunks
+from src.services.chunking_service import process_transcripts,get_all_chunks,delete_chunks
 
 router = APIRouter()
 
-class ChunkRequest(BaseModel):
-    text: str
-    chunk_size: int = 500
-    overlap: int = 50
-
 @router.get("/")
-def test_process():
-    return {"message": "Process Chunks route is working!"}
+def list_all_chunks():
+    chunks = get_all_chunks()
+    return {"status": "success", "data": chunks}
 
 @router.post("/")
-def process_chunks_route(req: ChunkRequest):
-    """
-    Splits text into overlapping chunks.
-    """
-    chunks = create_chunks(req.text, req.chunk_size, req.overlap)
-    return {"num_chunks": len(chunks), "chunks": chunks[:3]}  # only show few for now
+def process_chunks_route():
+    result = process_transcripts()
+    return result
+
+@router.delete("/")
+def clear_all_chunks():
+    deleted_count = delete_chunks()
+    return {"status": "success", "deleted_count": deleted_count}

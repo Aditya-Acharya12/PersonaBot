@@ -13,8 +13,3 @@ app.include_router(query.router, prefix="/query", tags=["Query Engine"])
 @app.get("/")
 def root():
     return {"message": "Welcome to PersonaBot API"}
-@app.get("/config-test")
-def test_config():
-    return {
-        "MONGO_URI": settings.MONGO_URI
-    }
