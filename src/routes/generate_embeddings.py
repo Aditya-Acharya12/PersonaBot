@@ -1,21 +1,23 @@
 from fastapi import APIRouter
 from typing import List
-from pydantic import BaseModel
-from src.services.embedding_service import generate_text_embeddings
+from src.services.embedding_service import embed_new_chunks, total_chunks, total_embedded_chunks, clear_all_embeddings
 
-router = APIRouter()
-
-class EmbeddingRequest(BaseModel):
-    chunks : List[str]
+router = APIRouter(prefix="/generate_embeddings", tags=["Embeddings"])
 
 @router.get("/")
-def test_embeddings():
-    return {"message": "Embeddings route is working!"}
+def count_embeddings():
+    total = total_chunks()
+    embedded = total_embedded_chunks()
+    return {"total_chunks": total, "embedded_chunks": embedded}
 
 @router.post("/")
-def generate_embeddings_route(req: EmbeddingRequest):
-    """
-    Generates embeddings for a list of text chunks.
-    """
-    embeddings = generate_text_embeddings(req.chunks)
-    return {"num_embeddings": len(embeddings), "sample_embedding": embeddings[0]}
+def generate_embeddings_route():
+    count = embed_new_chunks()
+    if count == 0:
+        return {"message": "No new chunks to embed."}
+    return {"message": f"Generated embeddings for {count} new chunks."}
+
+@router.delete("/")
+def clear_embeddings():
+    cleared_count = clear_all_embeddings()
+    return {"message": f"Cleared embeddings for {cleared_count} chunks."}

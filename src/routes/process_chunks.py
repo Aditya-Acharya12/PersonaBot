@@ -1,8 +1,7 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
 from src.services.chunking_service import process_transcripts,get_all_chunks,delete_chunks
 
-router = APIRouter()
+router = APIRouter(prefix="/process_chunks", tags=["Chunk Proocessing"])
 
 @router.get("/")
 def list_all_chunks():

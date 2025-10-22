@@ -1,8 +1,5 @@
 import nltk
 from nltk.tokenize import word_tokenize
-from pymongo import MongoClient
-import os
-from dotenv import load_dotenv
 import hashlib
 from src.db.connection import get_db
 
