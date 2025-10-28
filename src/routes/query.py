@@ -1,28 +1,13 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
-from src.services.retrieval_service import retrieve_relevant_chunks
-from src.services.llm_service import generate_llm_response
+from src.services.llm_service import generate_answer
 
-router = APIRouter()
-
-class QueryRequest(BaseModel):
-    query : str
-
-@router.get("/")
-def test_query():
-    return {"message": "query route is working!"}
+router = APIRouter(prefix="/query", tags=["Query Engine"])
 
 @router.post("/")
-def query_route(req: QueryRequest):
-    """
-    Performs retrieval + LLM response generation.
-    """
-    query_embedding = [0.1] * 384  # placeholder for now
-    relevant_chunks = retrieve_relevant_chunks(query_embedding)
-    response = generate_llm_response(req.query, relevant_chunks)
+async def query_llm(payload: dict):
+    query = payload.get("query")
+    if not query:
+        return {"error": "Query text missing"}
 
-    return {
-        "query": req.query,
-        "context": relevant_chunks,
-        "response": response
-    }
+    answer = generate_answer(query)
+    return {"query": query, "answer": answer}
