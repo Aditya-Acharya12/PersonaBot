@@ -1,9 +1,11 @@
 from fastapi import FastAPI
-from src.routes import transcribe, process_chunks, generate_embeddings, query
+from src.routes import transcribe, process_chunks, generate_embeddings, query, user_management
 from src.config.settings import get_settings
 
 app = FastAPI()
 settings = get_settings()
+
+app.include_router(user_management.router, prefix="/users", tags=["Users"])
 
 app.include_router(transcribe.router, prefix="/transcribe", tags=["Transcription"])
 app.include_router(process_chunks.router, prefix="/process_chunks", tags=["Chunk Processing"])

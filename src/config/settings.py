@@ -5,6 +5,9 @@ class Settings(BaseSettings):
     MONGO_URI: str
     DB_NAME: str = "audio_transcriber"
 
+    MAX_PERSONAS_PER_USER: int = 3
+    MAX_MEDIA_PER_PERSONA: int = 10
+
     AWS_ACCESS_KEY_ID: str | None = None
     AWS_SECRET_ACCESS_KEY: str | None = None
     AWS_REGION: str | None = "ap-south-1"
@@ -19,5 +22,8 @@ class Settings(BaseSettings):
         env_file = ".env"
 
 @lru_cache()
-def get_settings():
+def get_settings() -> Settings:
+    """
+    Cached settings instance so we don't re-parse .env on every import.
+    """
     return Settings()

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from src.services.chunking_service import process_transcripts,get_all_chunks,delete_chunks
 
-router = APIRouter(prefix="/process_chunks", tags=["Chunk Proocessing"])
+router = APIRouter(prefix="/process_chunks", tags=["Chunk Processing"])
 
 @router.get("/")
 def list_all_chunks():

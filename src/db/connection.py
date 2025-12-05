@@ -9,3 +9,11 @@ def get_db():
     client = MongoClient(mongo_uri)
     db = client[os.getenv("DB_NAME")]
     return db
+
+def get_collections():
+    db = get_db()
+    return {
+        "users": db["users"],
+        "personas": db["personas"],
+        "media": db["media"]
+    }
