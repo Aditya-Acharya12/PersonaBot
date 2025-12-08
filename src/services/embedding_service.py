@@ -3,18 +3,35 @@ Handles embedding generation logic
 """
 
 from sentence_transformers import SentenceTransformer
-from src.db.connection import get_db
+from bson import ObjectId
 
+from src.db.connection import get_db
+from src.config.settings import get_settings
+
+settings = get_settings()
 db = get_db()
 chunk_collection = db["chunks"]
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer(settings.EMBEDDING_MODEL)
 
-def embed_new_chunks():
+def embed_new_chunks(persona_id: str) -> dict:
     print("Generating embeddings for new chunks...\n")
+    persona_obj_id = ObjectId(persona_id)
+
+    docs = list(chunk_collection.find({
+        "persona_id": persona_obj_id,
+        "embedding": None
+    }))
+
+    if not docs: 
+        return {
+            "embedded_count":  0,
+            "message" : "No new chunks to embed."
+        }
+
     count = 0
 
-    for doc in chunk_collection.find({"embedding": None}):
+    for doc in docs:
         text = doc["text"]
         chunk_id = doc["chunk_id"]
 
@@ -27,7 +44,10 @@ def embed_new_chunks():
 
         print(f"✅ Embedded chunk {chunk_id}")
         count += 1
-    return count
+    return {
+        "embedded_count": count,
+        "message" : "Embedding generation for persona."
+    }
 
 def total_chunks():
     return chunk_collection.count_documents({})

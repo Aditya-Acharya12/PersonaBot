@@ -5,21 +5,26 @@ import whisper
 import os 
 from datetime import datetime, UTC 
 from src.db.connection import get_db
+from bson import ObjectId
 
 db = get_db()
 collection = db["transcripts"]
 
 model = whisper.load_model("base")
 
-def is_already_transcribed(file_name: str) -> bool:
-    return collection.find_one({"file_name": file_name}) is not None
+def is_already_transcribed(file_name: str, persona_id: str) -> bool:
+    persona_obj_id = ObjectId(persona_id)
+    return collection.find_one({"file_name": file_name , "persona_id" : persona_obj_id}) is not None
 
-def save_to_db(file_name: str, language: str, duration: float, transcription: str):
+def save_to_db(file_name: str, language: str, duration: float, transcription: str, persona_id: str):
+    persona_obj_id = ObjectId(persona_id)
+
     doc = {
         "file_name": file_name,
         "language": language,
         "duration": duration,
         "transcription": transcription,
+        "persona_id": persona_obj_id,
         "timestamp": datetime.now(UTC).isoformat()
     }
     collection.insert_one(doc)
@@ -32,7 +37,7 @@ def transcribe_audio(file_path: str):
     duration = result["segments"][-1]["end"] if result["segments"] else 0.0
     return transcript, language, duration
 
-def transcribe_multiple(files):
+def transcribe_multiple(files, persona_id: str):
     """
     Accepts a list of uploaded audio files (FastAPI UploadFile),
     transcribes each, stores results in DB, and returns metadata.
@@ -50,8 +55,8 @@ def transcribe_multiple(files):
         with open(local_path, "wb") as f:
             f.write(file.file.read())
 
-        if is_already_transcribed(file_name):
-            doc = collection.find_one({"file_name": file_name})
+        if is_already_transcribed(file_name, persona_id):
+            doc = collection.find_one({"file_name": file_name, "persona_id": ObjectId(persona_id)})
             results.append({
                 "file_name": file_name,
                 "language": doc["language"],
@@ -59,11 +64,12 @@ def transcribe_multiple(files):
                 "transcript": doc["transcription"],
                 "status": "already_exists"
             })
+            os.remove(local_path)
             continue
 
         # perform transcription
         transcript, language, duration = transcribe_audio(local_path)
-        save_to_db(file_name, language, duration, transcript)
+        save_to_db(file_name, language, duration, transcript, persona_id)
 
         results.append({
             "file_name": file_name,

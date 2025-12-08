@@ -2,6 +2,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 import hashlib
 from src.db.connection import get_db
+from bson import ObjectId
 
 db = get_db()
 source_collection = db["transcripts"]
@@ -28,25 +29,32 @@ def chunk_text_with_overlap(text: str, max_words: int = 250, overlap: int = 50):
 
     return chunks
 
-def process_transcripts():
-    """
-    Fetches all transcripts, chunks them, and stores results in 'chunks' collection.
-    Avoids duplicates via unique chunk_id.
-    """
+def process_transcripts(persona_id: str) -> dict:
+    from bson.errors import InvalidId
+
+    try:
+        persona_obj_id = ObjectId(persona_id)
+    except InvalidId:
+        return {"status": "error", "message": "Invalid persona_id"}
+
     print("🔹 Starting transcript chunking...")
-    docs = list(source_collection.find())
+    docs = list(source_collection.find({"persona_id": persona_obj_id}))
 
     if not docs:
-        print("⚠️ No transcripts found.")
-        return {"status": "empty"}
+        return {
+            "processed_files": 0,
+            "total_chunks_inserted": 0,
+            "message": "No transcripts found for this persona."
+        }
 
     total_inserted = 0
+    processed_files = 0
+
     for doc in docs:
         file_name = doc.get("file_name")
         text = doc.get("transcription")
 
         if not text or len(text.strip().split()) < 10:
-            print(f"⚠️ Skipping {file_name} — transcription too short.")
             continue
 
         chunks = chunk_text_with_overlap(text)
@@ -54,26 +62,36 @@ def process_transcripts():
 
         for idx, chunk in enumerate(chunks):
             chunk_id = generate_chunk_id(chunk, file_name, idx)
-            if chunk_collection.find_one({"chunk_id": chunk_id}):
+
+            if chunk_collection.find_one({"chunk_id": chunk_id, "persona_id": persona_obj_id}):
                 continue
 
             chunk_doc = {
                 "chunk_id": chunk_id,
                 "file_name": file_name,
                 "text": chunk,
+                "persona_id": persona_obj_id,
                 "embedding": None
             }
             chunk_collection.insert_one(chunk_doc)
             inserted += 1
 
-        total_inserted += inserted
-        print(f"✅ {file_name}: inserted {inserted} chunks")
+        if inserted > 0:
+            processed_files += 1
+            total_inserted += inserted
 
-    print(f"🏁 Done. Total inserted: {total_inserted}")
-    return {"status": "success", "inserted": total_inserted}
+    return {
+        "processed_files": processed_files,
+        "total_chunks_inserted": total_inserted,
+        "message": "Chunking completed."
+    }
 
-def get_all_chunks():
-    docs = chunk_collection.find({}, {"_id": 0})  # exclude internal MongoDB ID
+def get_chunks_for_persona(persona_id: str):
+    persona_obj_id = ObjectId(persona_id)
+    docs = chunk_collection.find(
+        {"persona_id": persona_obj_id},
+        {"_id": 0}
+    )
     return list(docs)
 
 def delete_chunks():

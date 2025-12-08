@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from typing import List
 from src.services.transcription_service import transcribe_multiple,get_all_transcripts,delete_transcript
 
@@ -10,11 +10,11 @@ def list_all_transcripts():
     return {"status": "success", "data": transcripts}
 
 @router.post("/")
-def transcribe_audio_route(files: List[UploadFile] = File(...)):
+def transcribe_audio_route(persona_id:str = Query(..., description = "Persona ID (Mongo ObjectId as a string) "),files: List[UploadFile] = File(...)):
     """
     Accept multiple audio files, transcribe them, and return the results.
     """
-    results = transcribe_multiple(files)
+    results = transcribe_multiple(files, persona_id)
     return {"status": "success", "count": len(results), "data": results}
 
 @router.delete("/{file_name}")

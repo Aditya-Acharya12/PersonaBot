@@ -97,6 +97,3 @@ def list_personas(user_id: str):
         )
         for p in personas
     ]
-
-#user_id: 69332f8bbf8f7bb3dfbd49c5
-#persona_id: 6933303f7f6431db4d001a58
