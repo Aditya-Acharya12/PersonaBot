@@ -6,9 +6,11 @@ import os
 from datetime import datetime, UTC 
 from src.db.connection import get_db
 from bson import ObjectId
+from src.utils.mongo import serialize_docs
 
 db = get_db()
 collection = db["transcripts"]
+chunk_collection = db["chunks"]
 
 model = whisper.load_model("base")
 
@@ -83,11 +85,20 @@ def transcribe_multiple(files, persona_id: str):
 
     return results
 
-def get_all_transcripts():
-    docs = collection.find({}, {"_id": 0})  # exclude internal MongoDB ID
-    return list(docs)
+def get_transcripts_for_persona(persona_id: str):
+    persona_obj_id = ObjectId(persona_id)
+    docs = list(collection.find({"persona_id": persona_obj_id}))
+    return serialize_docs(docs)
 
-
-def delete_transcript(file_name: str):
-    result = collection.delete_one({"file_name": file_name})
-    return result.deleted_count > 0
+def delete_transcript(file_name: str,persona_id: str):
+    persona_obj_id = ObjectId(persona_id)
+    result = collection.delete_one({"file_name": file_name, "persona_id": persona_obj_id})
+    if result.deleted_count == 0:
+        return False
+    chunk_collection.delete_many(
+        {
+            "file_name": file_name,
+            "persona_id": persona_obj_id
+        }
+    )
+    return True

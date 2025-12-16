@@ -3,6 +3,7 @@ from nltk.tokenize import word_tokenize
 import hashlib
 from src.db.connection import get_db
 from bson import ObjectId
+from src.utils.mongo import serialize_docs
 
 db = get_db()
 source_collection = db["transcripts"]
@@ -88,11 +89,11 @@ def process_transcripts(persona_id: str) -> dict:
 
 def get_chunks_for_persona(persona_id: str):
     persona_obj_id = ObjectId(persona_id)
-    docs = chunk_collection.find(
+    docs = list(chunk_collection.find(
         {"persona_id": persona_obj_id},
         {"_id": 0}
-    )
-    return list(docs)
+    ))
+    return serialize_docs(docs)
 
 def delete_chunks():
     result = chunk_collection.delete_many({})

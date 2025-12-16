@@ -6,6 +6,7 @@ import hashlib
 from src.db.connection import get_db
 from src.config.settings import get_settings
 from src.models.user_models import UserCreate, UserOut, PersonaCreate, PersonaOut
+from src.services.user_service import get_all_users, get_user_personas, delete_persona, delete_user
 
 router = APIRouter(prefix = "/users", tags=["Users"])
 
@@ -97,3 +98,35 @@ def list_personas(user_id: str):
         )
         for p in personas
     ]
+
+
+@router.get("/")
+def list_users():
+    users = get_all_users()
+    return {"status": "success", "data": users}
+
+@router.delete("/{user_id}/personas/{persona_id}")
+def delete_persona_route(user_id: str, persona_id: str):
+    result = delete_persona(user_id, persona_id)
+
+    if not result["deleted"]:
+        raise HTTPException(status_code=404, detail=result["reason"])
+
+    return {
+        "status": "success",
+        "message": "Persona deleted along with transcripts and chunks.",
+        "details": result,
+    }
+
+@router.delete("/{user_id}")
+def delete_user_route(user_id: str):
+    result = delete_user(user_id)
+
+    if not result["deleted"]:
+        raise HTTPException(status_code=404, detail=result["reason"])
+    
+    return {
+        "status": "success",
+        "message": "User deleted along with all associated personas, transcripts, and chunks.",
+        "details": result
+    }
