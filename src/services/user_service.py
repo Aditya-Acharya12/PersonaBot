@@ -1,14 +1,43 @@
-# src/services/user_service.py
-
+from datetime import datetime
 from bson import ObjectId
 from src.db.connection import get_db
 from src.utils.mongo import serialize_doc, serialize_docs
+from src.utils.security import hash_password, verify_password
 
 db = get_db()
 users_col = db["users"]
 personas_col = db["personas"]
 transcripts_col = db["transcripts"]
 chunks_col = db["chunks"]
+
+def create_user(email: str, password: str, name: str | None = None):
+    if users_col.find_one({"email": email}):
+        return None
+    user_doc = {
+        "email": email,
+        "password_hash": hash_password(password),
+        "name": name,
+        "created_at":  datetime.utcnow()
+    }
+    res = users_col.insert_one(user_doc)
+    user_doc["_id"] = res.inserted_id
+    return serialize_doc(user_doc)
+
+def authenticate_user(email: str, password: str):
+    user = users_col.find_one({"email": email})
+    if not user:
+        return None
+    if not verify_password(password, user.get("password_hash", "")):
+        return None
+    user = serialize_doc(user)
+    user["id"] = user.pop("_id",None)
+    return user
+
+def get_user_by_id(user_id: str):
+    doc = users_col.find_one({"_id": ObjectId(user_id)})
+    if not doc:
+        return None
+    return serialize_doc(doc)
 
 
 def get_all_users():

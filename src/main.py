@@ -1,10 +1,11 @@
 from fastapi import FastAPI
-from src.routes import transcribe, process_chunks, generate_embeddings, query, user_management, persona_routes
+from src.routes import transcribe, process_chunks, generate_embeddings, query, user_management, persona_routes, auth
 from src.config.settings import get_settings
 
 app = FastAPI()
 settings = get_settings()
 
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(user_management.router, prefix="/users", tags=["Users"])
 app.include_router(persona_routes.router, prefix="/persona", tags=["Persona Management"])
 

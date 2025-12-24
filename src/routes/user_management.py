@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from bson import ObjectId
 from datetime import datetime
 import hashlib
@@ -7,6 +7,8 @@ from src.db.connection import get_db
 from src.config.settings import get_settings
 from src.models.user_models import UserCreate, UserOut, PersonaCreate, PersonaOut
 from src.services.user_service import get_all_users, get_user_personas, delete_persona, delete_user
+from src.routes.auth import get_current_user
+from src.utils.authz import verify_persona_ownership
 
 router = APIRouter(prefix = "/users", tags=["Users"])
 
@@ -14,31 +16,6 @@ settings = get_settings()
 db=get_db()
 users_col = db["users"]
 personas_col = db["personas"]
-
-def hash_password(password: str)-> str:
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
-
-@router.post("/", response_model = UserOut)
-def create_user(user_in: UserCreate):
-    existing = users_col.find_one({"email": user_in.email})
-    if existing: 
-        raise HTTPException(status_code= 400, detail="User already exists with this email")
-    
-    doc = {
-        "name": user_in.name,
-        "email": user_in.email,
-        "password": hash_password(user_in.password),
-        "persona_limit": settings.MAX_PERSONAS_PER_USER,
-        "created_at": datetime.utcnow()
-    }
-
-    result = users_col.insert_one(doc)
-
-    return UserOut(
-        id=str(result.inserted_id),
-        name=user_in.name,
-        email=user_in.email
-    )
 
 
 @router.post("{user_id}/personas", response_model=PersonaOut)
@@ -106,7 +83,8 @@ def list_users():
     return {"status": "success", "data": users}
 
 @router.delete("/{user_id}/personas/{persona_id}")
-def delete_persona_route(user_id: str, persona_id: str):
+def delete_persona_route(user_id: str, persona_id: str, current_user: dict = Depends(get_current_user)):
+    verify_persona_ownership(persona_id, current_user["id"])
     result = delete_persona(user_id, persona_id)
 
     if not result["deleted"]:
