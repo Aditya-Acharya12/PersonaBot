@@ -78,6 +78,10 @@ def transcribe_multiple(file_paths: list[str], persona_id: str):
             if path.exists():
                 path.unlink()
 
+            parent_dir = path.parent
+            if parent_dir.exists() and not any(parent_dir.iterdir()):
+                parent_dir.rmdir()
+
     return results
 
 
