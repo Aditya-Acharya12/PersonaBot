@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query, Depends, BackgroundTasks
 from typing import List
 from src.services.embedding_service import embed_new_chunks, total_chunks, total_embedded_chunks, clear_all_embeddings
 from src.routes.auth import get_current_user
@@ -13,12 +13,10 @@ def count_embeddings():
     return {"total_chunks": total, "embedded_chunks": embedded}
 
 @router.post("/")
-def generate_embeddings_route(persona_id: str = Query(..., description = "Persona ID (Mongo ObjectId string)"), current_user: dict = Depends(get_current_user)):
+def generate_embeddings_route(background_tasks: BackgroundTasks, persona_id: str = Query(..., description = "Persona ID (Mongo ObjectId string)"), current_user: dict = Depends(get_current_user)):
     verify_persona_ownership(persona_id, current_user["id"])
-    count = embed_new_chunks(persona_id)
-    if count == 0:
-        return {"message": "No new chunks to embed."}
-    return {"message": f"Generated embeddings for {count} new chunks."}
+    background_tasks.add_task(embed_new_chunks, persona_id)
+    return {"message": f"Embedding generation task for persona {persona_id} has been started."}
 
 @router.delete("/")
 def clear_embeddings():

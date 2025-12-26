@@ -1,11 +1,13 @@
 """
-Handles audio transcription logic (e.g., Whisper)
+Handles audio transcription logic (Whisper)
 """
 import whisper
-import os 
-from datetime import datetime, UTC 
-from src.db.connection import get_db
+import os
+from pathlib import Path
+from datetime import datetime, UTC
 from bson import ObjectId
+
+from src.db.connection import get_db
 from src.utils.mongo import serialize_docs
 
 db = get_db()
@@ -14,23 +16,26 @@ chunk_collection = db["chunks"]
 
 model = whisper.load_model("base")
 
+
 def is_already_transcribed(file_name: str, persona_id: str) -> bool:
-    persona_obj_id = ObjectId(persona_id)
-    return collection.find_one({"file_name": file_name , "persona_id" : persona_obj_id}) is not None
+    return collection.find_one({
+        "file_name": file_name,
+        "persona_id": ObjectId(persona_id)
+    }) is not None
+
 
 def save_to_db(file_name: str, language: str, duration: float, transcription: str, persona_id: str):
-    persona_obj_id = ObjectId(persona_id)
-
     doc = {
         "file_name": file_name,
         "language": language,
         "duration": duration,
         "transcription": transcription,
-        "persona_id": persona_obj_id,
+        "persona_id": ObjectId(persona_id),
         "timestamp": datetime.now(UTC).isoformat()
     }
     collection.insert_one(doc)
     print(f"[DB] Saved transcript for {file_name}")
+
 
 def transcribe_audio(file_path: str):
     result = model.transcribe(file_path)
@@ -39,66 +44,63 @@ def transcribe_audio(file_path: str):
     duration = result["segments"][-1]["end"] if result["segments"] else 0.0
     return transcript, language, duration
 
-def transcribe_multiple(files, persona_id: str):
+
+def transcribe_multiple(file_paths: list[str], persona_id: str):
     """
-    Accepts a list of uploaded audio files (FastAPI UploadFile),
-    transcribes each, stores results in DB, and returns metadata.
+    BACKGROUND TASK ENTRYPOINT
+    Receives file paths (strings), not UploadFile objects
     """
     results = []
 
-    for file in files:
-        file_name = file.filename
-        local_path = f"temp/{file_name}"
-
-        # ensure temp folder exists
-        os.makedirs("temp", exist_ok=True)
-
-        # save locally
-        with open(local_path, "wb") as f:
-            f.write(file.file.read())
+    for path in file_paths:
+        path = Path(path)
+        file_name = path.name
 
         if is_already_transcribed(file_name, persona_id):
-            doc = collection.find_one({"file_name": file_name, "persona_id": ObjectId(persona_id)})
-            results.append({
-                "file_name": file_name,
-                "language": doc["language"],
-                "duration": doc["duration"],
-                "transcript": doc["transcription"],
-                "status": "already_exists"
-            })
-            os.remove(local_path)
+            print(f"[SKIP] {file_name} already transcribed")
             continue
 
-        # perform transcription
-        transcript, language, duration = transcribe_audio(local_path)
-        save_to_db(file_name, language, duration, transcript, persona_id)
+        try:
+            transcript, language, duration = transcribe_audio(str(path))
+            save_to_db(file_name, language, duration, transcript, persona_id)
 
-        results.append({
-            "file_name": file_name,
-            "language": language,
-            "duration": duration,
-            "transcript": transcript,
-            "status": "new"
-        })
+            results.append({
+                "file_name": file_name,
+                "language": language,
+                "duration": duration,
+                "status": "new"
+            })
+        except Exception as e:
+            print(f"[ERROR] Transcribing {file_name}: {e}")
 
-        os.remove(local_path)
+        finally:
+            # cleanup
+            if path.exists():
+                path.unlink()
 
     return results
 
+
 def get_transcripts_for_persona(persona_id: str):
-    persona_obj_id = ObjectId(persona_id)
-    docs = list(collection.find({"persona_id": persona_obj_id}))
+    docs = list(collection.find({"persona_id": ObjectId(persona_id)}))
     return serialize_docs(docs)
 
-def delete_transcript(file_name: str,persona_id: str):
+
+def delete_transcript(file_name: str, persona_id: str):
     persona_obj_id = ObjectId(persona_id)
-    result = collection.delete_one({"file_name": file_name, "persona_id": persona_obj_id})
+
+    result = collection.delete_one({
+        "file_name": file_name,
+        "persona_id": persona_obj_id
+    })
+
     if result.deleted_count == 0:
         return False
-    chunk_collection.delete_many(
-        {
-            "file_name": file_name,
-            "persona_id": persona_obj_id
-        }
-    )
+
+    # cascade delete chunks
+    chunk_collection.delete_many({
+        "file_name": file_name,
+        "persona_id": persona_obj_id
+    })
+
     return True
