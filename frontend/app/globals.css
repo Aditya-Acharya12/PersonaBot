@@ -1,26 +1,97 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ================================
+   Design Tokens (Tailwind v4)
+================================ */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+:root {
+  /* Core colors */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
+
+  --border: 220 13% 91%;
+
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+
+  /* Typography */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* Dark mode (class-based or system) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 222 30% 10%;        /* lighter than before */
+    --foreground: 210 40% 98%;
+
+    --card: 222 30% 13%;
+    --card-foreground: 210 40% 98%;
+
+    --muted: 222 25% 18%;
+    --muted-foreground: 215 20% 70%;
+
+    --border: 222 20% 22%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
   }
 }
 
+
+/* ================================
+   Base styles
+================================ */
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ================================
+   Utility helpers
+================================ */
+
+.section-container {
+  max-width: 72rem; /* ~ max-w-6xl */
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+/* ================================
+   Card polish
+================================ */
+
+.card {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  box-shadow:
+    0 1px 2px hsl(0 0% 0% / 0.04),
+    0 4px 12px hsl(0 0% 0% / 0.06);
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 12px hsl(0 0% 0% / 0.08),
+    0 12px 24px hsl(0 0% 0% / 0.12);
+  border-color: hsl(var(--primary) / 0.4);
 }

@@ -1,5 +1,9 @@
-import { redirect } from "next/navigation";
+import Landing from "@/components/landing/Index";
 
 export default function Home() {
-  redirect("/auth/login");
+  return (
+    <>
+      <Landing />
+    </>
+  );
 }
