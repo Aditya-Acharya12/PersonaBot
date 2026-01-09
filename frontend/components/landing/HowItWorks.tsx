@@ -47,8 +47,11 @@ const itemVariants = {
 
 export const HowItWorks = () => {
   return (
-    <section className="py-24 bg-background">
+    <section className="relative py-24 bg-linear-to-b from-slate-900/40 to-background">
+
       <div className="section-container">
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-24 bg-linear-to-b from-transparent via-background/70 to-background"/>
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-br from-blue-500/10 via-transparent to-cyan-400/10 blur-2xl" />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -82,11 +85,26 @@ export const HowItWorks = () => {
                 <div className="hidden md:block absolute top-12 left-[60%] w-[80%] h-px bg-border" />
               )}
               
-              <div className="bg-card rounded-xl p-8 border border-border shadow-card h-full">
+              <div className="
+  rounded-xl p-8 h-full
+  bg-white/10
+  backdrop-blur-md
+  border border-white/10
+  shadow-[0_8px_32px_rgba(0,0,0,0.25)]
+">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary">
-                    <step.icon className="w-6 h-6" />
-                  </div>
+                  <div className="
+  flex items-center justify-center 
+  w-12 h-12 rounded-xl
+  bg-white/10 
+  backdrop-blur-md
+  border border-white/20
+  text-primary
+  shadow-[0_0_0_1px_rgba(255,255,255,0.05)]
+">
+  <step.icon className="w-6 h-6" />
+</div>
+
                   <span className="text-sm font-mono text-muted-foreground mt-3">
                     {step.number}
                   </span>

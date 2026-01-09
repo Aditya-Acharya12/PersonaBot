@@ -97,3 +97,21 @@ def delete_user_route(user_id: str):
         raise HTTPException(status_code=404, detail=result["reason"])
 
     return {"status": "success"}
+
+@router.get("/me/personas/{persona_id}", response_model=PersonaOut)
+def get_persona_me(
+    persona_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    verify_persona_ownership(persona_id, current_user["id"])
+
+    persona = personas_col.find_one({"_id": ObjectId(persona_id)})
+    if not persona:
+        raise HTTPException(status_code=404, detail="Persona not found")
+
+    return PersonaOut(
+        id=str(persona["_id"]),
+        user_id=str(persona["user_id"]),
+        name=persona["name"],
+        description=persona.get("description"),
+    )

@@ -66,9 +66,17 @@ export const Hero = () => {
           >
             <Link href="/auth/signup">
               <Button
-                size="lg"
-                className="h-12 px-8 text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
+  size="lg"
+  className="
+    h-12 px-8 text-base font-medium
+    bg-linear-to-r from-blue-500 to-cyan-500
+    hover:from-blue-400 hover:to-cyan-400
+    text-white
+    shadow-[0_8px_30px_rgba(59,130,246,0.35)]
+    transition-all duration-300
+  "
+>
+
                 Get Started
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -78,7 +86,14 @@ export const Hero = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="h-12 px-8 text-base font-medium border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-slate-200 bg-transparent"
+                className="
+  h-12 px-8 text-base font-medium
+  bg-white/5
+  border border-white/20
+  text-slate-200
+  hover:bg-white/10
+  backdrop-blur-md
+"
               >
                 Login
               </Button>
@@ -87,8 +102,18 @@ export const Hero = () => {
         </motion.div>
       </div>
 
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-background to-transparent" />
+      <div
+  className="
+    pointer-events-none
+    absolute bottom-0 left-0 right-0
+    h-40
+    bg-linear-to-b
+    from-transparent
+    via-slate-900/60
+    to-background
+    backdrop-blur-sm
+  "
+/>
     </section>
   );
 };

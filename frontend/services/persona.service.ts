@@ -28,10 +28,7 @@ export const deletePersona = async (personaId: string) => {
   return res.data;
 };
 
-export const getPersonaById = async (
-  personaId: string
-): Promise<Persona | null> => {
-  const res = await api.get("/users/me/personas");
-  const personas: Persona[] = res.data;
-  return personas.find((p) => p.id === personaId) || null;
+export const getPersonaById = async (personaId: string) => {
+  const res = await api.get(`/personas/${personaId}`);
+  return res.data;
 };

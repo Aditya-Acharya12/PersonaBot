@@ -5,7 +5,7 @@ export const queryPersona = async (
   query: string
 ) => {
   const res = await api.post(
-    `/query?persona_id=${personaId}`,
+    `/personas/${personaId}/query`,
     { query }
   );
   return res.data;

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import AppBackground from "@/components/layout/AppBackground";
 
 export const metadata: Metadata = {
   title: "PersonaBot",
@@ -14,8 +15,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">
-        <Providers>{children}</Providers>
+      <body className="antialiased relative">
+        <Providers>
+          <AppBackground />
+          {children}
+        </Providers>
       </body>
     </html>
   );

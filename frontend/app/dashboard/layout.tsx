@@ -20,10 +20,6 @@ export default function DashboardLayout({
 
   return (
     <div>
-      <div style={{ padding: 16, borderBottom: "1px solid #ddd" }}>
-        <button onClick={logout}>logout</button>
-      </div>
-
       <div>{children}</div>
     </div>
   );

@@ -77,11 +77,28 @@ export const UseCases = () => {
             <motion.div
               key={useCase.title}
               variants={itemVariants}
-              className="group bg-card rounded-xl p-6 border border-border shadow-card hover:shadow-md transition-shadow duration-300"
+              className="
+   group rounded-xl p-6
+  bg-white/10
+  backdrop-blur-md
+  border border-white/10
+  shadow-[0_8px_32px_rgba(0,0,0,0.25)]
+  hover:border-primary/30
+  transition-all duration-300
+"
             >
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary mb-5 group-hover:bg-primary/15 transition-colors">
-                <useCase.icon className="w-5 h-5" />
-              </div>
+              <div className="
+  flex items-center justify-center 
+  w-12 h-12 rounded-xl
+  bg-white/10 
+  backdrop-blur-md
+  border border-white/20
+  text-primary
+  shadow-[0_0_0_1px_rgba(255,255,255,0.05)]
+">
+  <useCase.icon className="w-6 h-6" />
+</div>
+
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 {useCase.title}
               </h3>

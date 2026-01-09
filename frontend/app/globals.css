@@ -6,13 +6,13 @@
 
 :root {
   /* Core colors */
-  --background: 0 0% 100%;
+  --background: 210 40% 98%;        /* softer light base */
   --foreground: 222 47% 11%;
 
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
 
-  --muted: 220 14% 96%;
+  --muted: 220 20% 96%;
   --muted-foreground: 220 9% 46%;
 
   --border: 220 13% 91%;
@@ -25,25 +25,24 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Dark mode (class-based or system) */
+/* Dark mode (system-based, no class dependency) */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: 222 30% 10%;        /* lighter than before */
+    --background: 222 30% 11%;      /* not pitch black */
     --foreground: 210 40% 98%;
 
-    --card: 222 30% 13%;
+    --card: 222 30% 14%;
     --card-foreground: 210 40% 98%;
 
     --muted: 222 25% 18%;
     --muted-foreground: 215 20% 70%;
 
-    --border: 222 20% 22%;
+    --border: 222 20% 24%;
 
     --primary: 217 91% 60%;
     --primary-foreground: 222 47% 11%;
   }
 }
-
 
 /* ================================
    Base styles
@@ -61,17 +60,18 @@ body {
 }
 
 /* ================================
-   Utility helpers
+   Layout helpers
 ================================ */
 
 .section-container {
-  max-width: 72rem; /* ~ max-w-6xl */
+  max-width: 80rem; /* ~ max-w-7xl */
   margin-inline: auto;
-  padding-inline: 1.5rem;
+  padding-inline: rem;
 }
 
+
 /* ================================
-   Card polish
+   Card polish (used everywhere)
 ================================ */
 
 .card {
@@ -81,7 +81,7 @@ body {
   border-radius: 0.75rem;
   box-shadow:
     0 1px 2px hsl(0 0% 0% / 0.04),
-    0 4px 12px hsl(0 0% 0% / 0.06);
+    0 8px 24px hsl(0 0% 0% / 0.06);
   transition:
     transform 200ms ease,
     box-shadow 200ms ease,
@@ -91,7 +91,7 @@ body {
 .card:hover {
   transform: translateY(-2px);
   box-shadow:
-    0 4px 12px hsl(0 0% 0% / 0.08),
-    0 12px 24px hsl(0 0% 0% / 0.12);
-  border-color: hsl(var(--primary) / 0.4);
+    0 8px 24px hsl(0 0% 0% / 0.1),
+    0 16px 40px hsl(0 0% 0% / 0.12);
+  border-color: hsl(var(--primary) / 0.35);
 }

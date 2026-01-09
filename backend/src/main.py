@@ -24,7 +24,7 @@ app.include_router(persona_routes.router, tags=["Persona Management"])
 app.include_router(transcribe.router, tags=["Transcription"])
 app.include_router(process_chunks.router, tags=["Chunk Processing"])
 app.include_router(generate_embeddings.router, tags=["Embeddings"])
-app.include_router(query.router, prefix="/query", tags=["Query Engine"])
+app.include_router(query.router, tags=["Query Engine"])
 
 @app.get("/")
 def root():

@@ -1,5 +1,10 @@
 import api from "@/lib/api";
 
+export type Transcript = {
+  filename: string;
+  status: "processing" | "completed" | string;
+};
+
 export const uploadAndTranscribe = async (
   personaId: string,
   files: File[]
@@ -8,7 +13,7 @@ export const uploadAndTranscribe = async (
   files.forEach((f) => formData.append("files", f));
 
   const res = await api.post(
-    `/tarnscribe/?persona_id=${personaId}`,
+    `/personas/${personaId}/transcribe`,
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },
@@ -18,8 +23,12 @@ export const uploadAndTranscribe = async (
   return res.data;
 };
 
-export const getTranscripts = async (personaId: string) => {
-  const res = await api.get(`/tarnscribe/?persona_id=${personaId}`);
+export const getTranscripts = async (
+  personaId: string
+): Promise<Transcript[]> => {
+  const res = await api.get(
+    `/personas/${personaId}/transcripts`
+  );
   return res.data.data;
 };
 
@@ -28,7 +37,7 @@ export const deleteTranscript = async (
   fileName: string
 ) => {
   const res = await api.delete(
-    `/tarnscribe/${fileName}?persona_id=${personaId}`
+    `/personas/${personaId}/transcripts/${fileName}`
   );
   return res.data;
 };
