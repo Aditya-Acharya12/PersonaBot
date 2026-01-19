@@ -115,6 +115,16 @@ export default function PersonaWorkspace() {
     setFiles((prev) => [...prev, ...dropped]);
   }, []);
 
+  const CHAT_HISTORY_LIMIT = 8;
+
+  const buildChatHistory = (messages: ChatMessage[]) => {
+    return messages
+      .slice(-CHAT_HISTORY_LIMIT)
+      .map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+  };
 
   const handleUpload = async () => {
     if (!personaId || files.length === 0) return;
@@ -127,32 +137,49 @@ export default function PersonaWorkspace() {
   };
 
   const handleQuery = async () => {
-    if (!personaId || !question.trim()) return;
+  if (!personaId || !question.trim()) return;
 
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      role: "user",
-      content: question.trim(),
-    };
-
-    setMessages((m) => [...m, userMsg]);
-    setQuestion("");
-    setAsking(true);
-
-    try {
-      const res = await queryPersona(personaId, userMsg.content);
-      setMessages((m) => [
-        ...m,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: res.answer,
-        },
-      ]);
-    } finally {
-      setAsking(false);
-    }
+  const userMsg: ChatMessage = {
+    id: Date.now().toString(),
+    role: "user",
+    content: question.trim(),
   };
+
+  // 👇 build history BEFORE pushing new message
+  const history = buildChatHistory(messages);
+
+  setMessages((m) => [...m, userMsg]);
+  setQuestion("");
+  setAsking(true);
+
+  try {
+    const res = await queryPersona(
+      personaId,
+      userMsg.content,
+      history
+    );
+
+    setMessages((m) => [
+      ...m,
+      {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: res.answer,
+      },
+    ]);
+  } catch {
+    setMessages((m) => [
+      ...m,
+      {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Something went wrong. Please try again.",
+      },
+    ]);
+  } finally {
+    setAsking(false);
+  }
+};
 
   if (!persona || !status) {
     return (
@@ -228,6 +255,11 @@ export default function PersonaWorkspace() {
                 multiple
                 accept="audio/*,video/*"
                 className="hidden"
+                onChange={(e) => {
+                  if (!e.target.files) return;
+                  const selected = Array.from(e.target.files);
+                  setFiles((prev) => [...prev, ...selected]);
+                }}
               />
             </div>
 
