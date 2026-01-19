@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from jose import JWTError
+
 from src.models.user_models import UserCreate, Token
 from src.services.user_service import create_user, authenticate_user, get_user_by_id
-from src.utils.security import create_access_token
-from src.models.user_models import TokenData
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from src.utils.security import create_access_token, decode_access_token
 
 router = APIRouter(tags=["Authentication"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
@@ -21,16 +23,36 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     access_token = create_access_token({"sub": str(user["id"])})
-    return {"access_token": access_token, "token_type": "bearer"}
 
-from fastapi import Security
-from jose import JWTError 
-from src.utils.security import decode_access_token
-from src.models.user_models import TokenData
+    response = JSONResponse(
+        content={
+            "access_token": access_token,
+            "token_type": "bearer",
+        }
+    )
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    try: 
-        payload = decode_access_token(token)
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        max_age=60 * 60 * 24,
+        path="/",
+    )
+
+    return response
+
+
+def get_current_user(request: Request, token: str = Depends(oauth2_scheme)):
+    cookie_token = request.cookies.get("access_token")
+    jwt_token = cookie_token or token
+
+    if not jwt_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    try:
+        payload = decode_access_token(jwt_token)
         user_id = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid credentials")
