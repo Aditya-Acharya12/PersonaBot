@@ -1,132 +1,169 @@
-
 # PersonaBot 🧠🎙️  
-*A Persona-Aware Conversational AI Backend*
+*A Production-Grade Persona-Aware Conversational AI System*
 
-PersonaBot is a **production-style backend system** that turns raw audio recordings into a **persona-aware conversational AI**.  
-Each persona behaves like a distinct individual, grounded entirely in *their own spoken content*.
+PersonaBot is a **production-deployed, end-to-end AI system** that transforms raw audio recordings into **persona-aware conversational agents**.
 
-This project is not a demo wrapper around an LLM — it is a **full AI pipeline** with authentication, authorization, background processing, and clean system boundaries.
+Each persona behaves like a distinct individual, grounded strictly in *their own spoken content*.  
+PersonaBot enforces this at the **data, service, and authorization layers** — not just through prompts.
+
+This project is **not a demo wrapper around an LLM**.  
+It is a **real-world AI backend** with authentication, authorization, background processing, cloud deployment, and a cleanly engineered AI pipeline.
+
+---
+
+## 🚀 Live Deployment
+
+- **Backend API (FastAPI + Swagger)**  
+  👉 `https://<your-railway-backend>.up.railway.app/docs`
+
+- **Frontend (Next.js)**  
+  👉 `https://persona-bot-gamma.vercel.app`
 
 ---
 
 ## ✨ What PersonaBot Does
 
-- Accepts **audio uploads** for a specific persona
-- Transcribes audio using **OpenAI Whisper**
-- Chunks transcripts with overlap for semantic coherence
-- Generates vector embeddings for each chunk
-- Retrieves the most relevant chunks at query time
-- Generates **first-person responses** using an LLM
-- Enforces **strict persona ownership & data isolation**
-- Handles long-running AI workloads asynchronously
+- Accepts **audio / video uploads** per persona  
+- Transcribes media asynchronously using **OpenAI Whisper**  
+- Stores transcripts in **MongoDB**  
+- Chunks transcripts with overlap for semantic coherence  
+- Generates vector embeddings for each chunk  
+- Retrieves the most relevant chunks at query time  
+- Produces **first-person, persona-aware responses**  
+- Enforces **strict persona ownership & data isolation**  
+- Handles long-running AI workloads using **background tasks**  
+- Supports secure multi-user access with JWT-based authentication  
 
 ---
 
 ## 🏗️ System Architecture
 
 ```
-Audio Upload
+Client (Web / API)
      ↓
-Whisper Transcription (Background Task)
+Authenticated Upload (JWT)
      ↓
-Transcript Storage (MongoDB)
+FastAPI Backend
      ↓
-Chunking with Overlap
+Background Tasks
+     ├── Whisper Transcription
+     ├── Text Chunking
+     └── Embedding Generation
      ↓
-Embedding Generation (Sentence Transformers)
+MongoDB (Persona-Scoped Data)
      ↓
-Vector Retrieval (Cosine Similarity)
+Semantic Retrieval (Cosine Similarity)
      ↓
 LLM Response (Persona-Aware)
 ```
 
-Each step is independently testable and replaceable.
+Each stage is:
+- Explicit  
+- Independently testable  
+- Replaceable without breaking the system  
 
 ---
 
 ## 🔐 Authentication & Authorization
 
-- JWT-based authentication (OAuth2 password flow)
-- Secure password hashing (bcrypt via passlib)
-- Persona-level ownership checks on **every route**
-- No persona data can be accessed across users
+- OAuth2 password flow  
+- JWT-based stateless authentication  
+- Secure password hashing using **bcrypt (passlib)**  
+- Persona-level ownership checks on **every protected route**  
+- Zero cross-user or cross-persona data leakage  
+
+Authorization is enforced **both at route-level and service-level**, ensuring defense in depth.
 
 ---
 
-## 🧠 Design Philosophy
+## 🧠 AI Pipeline Design
 
-This project is intentionally built to reflect **real-world AI system design**, not a demo stitched together around an LLM API.
+PersonaBot intentionally exposes the **entire AI lifecycle** instead of hiding it behind a single API call.
 
-The core ideas behind PersonaBot are:
+### Pipeline Stages
 
-- **Persona isolation by design**  
-  Each persona has its own transcripts, chunks, and embeddings. Data never bleeds across personas — enforced at DB, service, and route layers.
+1. **Transcription** – OpenAI Whisper  
+2. **Chunking** – Overlapping windows for semantic continuity  
+3. **Embedding** – Sentence Transformers (CPU-friendly)  
+4. **Retrieval** – Cosine similarity over persona-scoped vectors  
+5. **Generation** – Persona-conditioned LLM responses  
 
-- **Explicit AI pipelines**  
-  Transcription, chunking, embedding, retrieval, and generation are separate stages with clear responsibilities.
+### Key Properties
 
-- **Asynchronous-first thinking**  
-  Whisper, chunking, and embedding run as background tasks to keep the API responsive.
+- No hallucinated memory  
+- Responses are grounded only in user-provided content  
+- Persona isolation is structural, not prompt-based  
 
-- **Backend correctness over UI polish**  
-  The project prioritizes architecture, authorization, and correctness over surface-level features.
+---
 
-- **Security as a first-class concern**  
-  Ownership checks are explicit — no implicit trust, no shortcuts.
+## ⚙️ Backend Architecture & Engineering
 
-PersonaBot is designed to show **how AI systems should be engineered**, not just how they can be called.
+- Clear separation of routes, services, models, and utilities  
+- Long-running workloads handled via **FastAPI BackgroundTasks**  
+- Explicit error handling and validation  
+- Modular design suitable for scaling and extension  
+- Identical behavior between **local and production environments**  
 
 ---
 
 ## 🧪 Tech Stack
 
 ### Backend
-- **FastAPI**
-- **MongoDB (Atlas-ready)**
-- **JWT + OAuth2**
-- **Pydantic**
-- **Uvicorn**
+- FastAPI  
+- Uvicorn  
+- MongoDB  
+- JWT + OAuth2  
+- Pydantic v2  
+- Passlib (bcrypt)  
 
 ### AI / ML
-- **OpenAI Whisper**
-- **Sentence Transformers**
-- **Cosine similarity retrieval**
-- **LLM (Gemini / OpenAI-compatible)**
+- OpenAI Whisper  
+- Sentence Transformers  
+- Cosine similarity retrieval  
+- LLM (Gemini / OpenAI-compatible)  
 
-### Infra & Patterns
-- Background tasks for long-running workloads
-- Clean service–route separation
-- Persona-scoped data modeling
+### Frontend
+- Next.js  
+- TypeScript  
+- Vercel  
+
+### Infrastructure
+- Docker  
+- Railway  
+- CORS-safe cross-origin auth  
+- CPU-only inference  
 
 ---
 
 ## 📦 Key Features
 
-- Persona-based conversational memory
-- Background transcription & embedding
-- Secure multi-user architecture
-- Clean, extensible pipeline
-- Ready for frontend or API consumers
+- Persona-scoped conversational memory  
+- Secure multi-user architecture  
+- Background transcription & embedding pipelines  
+- Clean, extensible AI workflow  
+- Swagger-documented APIs  
+- Frontend-ready backend  
 
 ---
 
 ## 🚀 What This Project Demonstrates
 
-- Designing AI systems beyond prompt engineering
-- Handling real-world constraints (latency, ownership, scale)
-- Building production-ready APIs for AI workloads
-- Strong backend engineering fundamentals
+- Designing **AI systems**, not just calling AI APIs  
+- Handling real-world constraints (latency, auth, deployment)  
+- Debugging production issues across Docker, cloud, and ML stacks  
+- Strong backend and system engineering fundamentals  
+- End-to-end ownership: ML → backend → infra → deployment  
 
 ---
 
 ## 🔮 Future Work
 
-- Frontend dashboard (Next.js)
-- Streaming responses
-- Rate limiting & usage quotas
-- Job status endpoints
-- Cloud storage for media (S3/GCS)
-- Vector DB integration (FAISS / Pinecone)
+- Job status & progress tracking endpoints  
+- Streaming LLM responses  
+- Rate limiting & usage quotas  
+- Cloud object storage (S3 / GCS)  
+- Vector DB integration (FAISS / Pinecone)  
+- Background workers (Celery / Redis)  
 
 ---
 
